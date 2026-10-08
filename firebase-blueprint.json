@@ -1,0 +1,150 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "role": { "type": "string" },
+        "isBlocked": { "type": "boolean" },
+        "credits": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email", "displayName", "createdAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Registered administrator",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email", "createdAt"]
+    },
+    "Wallpaper": {
+      "title": "Wallpaper",
+      "description": "Wallpaper asset and metadata",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array" },
+        "cloudinaryUrl": { "type": "string" },
+        "cloudinaryPublicId": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "width": { "type": "integer" },
+        "height": { "type": "integer" },
+        "aspectRatio": { "type": "string" },
+        "uploadedAt": { "type": "string", "format": "date-time" },
+        "downloadCount": { "type": "integer" },
+        "favoriteCount": { "type": "integer" },
+        "isFeatured": { "type": "boolean" },
+        "isTrending": { "type": "boolean" },
+        "isPopular": { "type": "boolean" },
+        "isPublished": { "type": "boolean" },
+        "uploaderUid": { "type": "string" }
+      },
+      "required": [
+        "id",
+        "title",
+        "category",
+        "cloudinaryUrl",
+        "cloudinaryPublicId",
+        "thumbnailUrl",
+        "uploadedAt",
+        "isPublished"
+      ]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Wallpaper category taxonomy",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "iconUrl": { "type": "string" },
+        "wallpaperCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "slug", "createdAt"]
+    },
+    "Favorite": {
+      "title": "Favorite",
+      "description": "User favorite bookmark",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "wallpaperId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "wallpaperId", "createdAt"]
+    },
+    "Download": {
+      "title": "Download",
+      "description": "User download history record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "wallpaperId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "wallpaperId", "createdAt"]
+    },
+    "HistoryItem": {
+      "title": "HistoryItem",
+      "description": "Recently viewed wallpaper history",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "wallpaperId": { "type": "string" },
+        "viewedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "wallpaperId", "viewedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Admin registry"
+    },
+    "/wallpapers/{wallpaperId}": {
+      "schema": { "$ref": "#/entities/Wallpaper" },
+      "description": "Curated wallpapers collection"
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Category list"
+    },
+    "/favorites/{favoriteId}": {
+      "schema": { "$ref": "#/entities/Favorite" },
+      "description": "User favorites with userId scoping"
+    },
+    "/downloads/{downloadId}": {
+      "schema": { "$ref": "#/entities/Download" },
+      "description": "User downloads with userId scoping"
+    },
+    "/history/{historyId}": {
+      "schema": { "$ref": "#/entities/HistoryItem" },
+      "description": "User view history with userId scoping"
+    }
+  }
+}

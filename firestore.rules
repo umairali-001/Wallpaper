@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'lisaamane001@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Admins collection
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && (request.auth.uid == adminId || isAdmin());
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId &&
+        incoming().userId == request.auth.uid &&
+        incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+        incoming().keys().hasAll(['userId', 'email', 'createdAt']) &&
+        (!('isBlocked' in incoming()) || incoming().isBlocked == false || isAdmin()) &&
+        (!('role' in incoming()) || incoming().role == 'user' || isAdmin());
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (
+          request.auth.uid == userId &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          (!('isBlocked' in incoming()) || incoming().isBlocked == existing().isBlocked) &&
+          (!('role' in incoming()) || incoming().role == existing().role) &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoUrl', 'updatedAt'])
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Wallpapers collection
+    match /wallpapers/{wallpaperId} {
+      allow get: if isSignedIn() && (resource.data.isPublished == true || isAdmin());
+      allow list: if isSignedIn() && (resource.data.isPublished == true || isAdmin());
+
+      allow create: if isAdmin() &&
+        incoming().id is string &&
+        incoming().title is string && incoming().title.size() <= 100 &&
+        incoming().category is string &&
+        incoming().cloudinaryUrl is string && incoming().cloudinaryUrl.size() <= 500 &&
+        incoming().cloudinaryPublicId is string &&
+        incoming().thumbnailUrl is string && incoming().thumbnailUrl.size() <= 500 &&
+        incoming().uploadedAt is timestamp && incoming().uploadedAt <= request.time &&
+        incoming().isPublished is bool;
+
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['downloadCount', 'favoriteCount', 'updatedAt'])
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // Categories collection
+    match /categories/{categoryId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Favorites collection
+    match /favorites/{favoriteId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() &&
+        incoming().userId == request.auth.uid &&
+        incoming().wallpaperId is string &&
+        incoming().createdAt is timestamp && incoming().createdAt <= request.time;
+      allow update: if false;
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // Downloads collection
+    match /downloads/{downloadId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() &&
+        incoming().userId == request.auth.uid &&
+        incoming().wallpaperId is string &&
+        incoming().createdAt is timestamp && incoming().createdAt <= request.time;
+      allow update: if false;
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // History collection
+    match /history/{historyId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() &&
+        incoming().userId == request.auth.uid &&
+        incoming().wallpaperId is string &&
+        incoming().viewedAt is timestamp && incoming().viewedAt <= request.time;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+  }
+}

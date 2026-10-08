@@ -1,0 +1,6 @@
+{
+  "name": "Lumina Wallpapers",
+  "description": "Premium iOS-inspired glassmorphism wallpaper app with curated collections, live previews, and cloud synchronization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
